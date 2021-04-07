@@ -1,5 +1,6 @@
 package org.folio.search.service;
 
+import static java.util.stream.Collectors.toList;
 import static org.folio.search.utils.SearchResponseHelper.getSuccessIndexOperationResponse;
 import static org.folio.search.utils.SearchUtils.getElasticsearchIndexName;
 
@@ -16,6 +17,8 @@ import org.folio.search.domain.dto.FolioIndexOperationResponse;
 import org.folio.search.domain.dto.ReindexJob;
 import org.folio.search.domain.dto.ResourceEventBody;
 import org.folio.search.exception.SearchServiceException;
+import org.folio.search.model.SearchDocumentBody;
+import org.folio.search.model.service.ResourceIdEvent;
 import org.folio.search.repository.IndexRepository;
 import org.folio.search.service.converter.MultiTenantSearchDocumentConverter;
 import org.folio.search.service.es.SearchMappingsHelper;
@@ -79,7 +82,17 @@ public class IndexService {
     }
 
     var elasticsearchDocuments = multiTenantSearchDocumentConverter.convert(resources);
+    checkThatDocumentsCanBeIndexed(elasticsearchDocuments);
     return indexRepository.indexResources(elasticsearchDocuments);
+  }
+
+  public FolioIndexOperationResponse removeResources(List<ResourceIdEvent> resources) {
+    if (CollectionUtils.isEmpty(resources)) {
+      return getSuccessIndexOperationResponse();
+    }
+
+    var deleteEvents = multiTenantSearchDocumentConverter.convertDeleteEvents(resources);
+    return indexRepository.removeResources(deleteEvents);
   }
 
   public void createIndexIfNotExist(String resourceName, String tenantId) {
@@ -91,5 +104,19 @@ public class IndexService {
 
   public ReindexJob reindexInventory() {
     return instanceStorageClient.submitReindex();
+  }
+
+  private void checkThatDocumentsCanBeIndexed(List<SearchDocumentBody> elasticsearchDocuments) {
+    var absentIndexNames = elasticsearchDocuments.stream()
+      .map(SearchDocumentBody::getIndex)
+      .distinct()
+      .filter(index -> !indexRepository.indexExists(index))
+      .collect(toList());
+
+    if (CollectionUtils.isNotEmpty(absentIndexNames)) {
+      throw new SearchServiceException(String.format(
+        "Cancelling bulk operation [reason: Cannot index resources for non existing indices [indices=%s]]",
+        absentIndexNames));
+    }
   }
 }
