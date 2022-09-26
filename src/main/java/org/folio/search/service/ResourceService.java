@@ -23,7 +23,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.folio.search.domain.dto.FolioIndexOperationResponse;
 import org.folio.search.domain.dto.ResourceEvent;
 import org.folio.search.domain.dto.ResourceEventType;
-import org.folio.search.integration.KafkaMessageProducer;
 import org.folio.search.integration.ResourceFetchService;
 import org.folio.search.model.index.SearchDocumentBody;
 import org.folio.search.model.metadata.ResourceDescription;
@@ -44,13 +43,27 @@ public class ResourceService {
 
   private static final String PRIMARY_INDEXING_REPOSITORY_NAME = "primary";
 
-  private final KafkaMessageProducer messageProducer;
   private final IndexRepository indexRepository;
   private final ResourceFetchService resourceFetchService;
   private final PrimaryResourceRepository primaryResourceRepository;
   private final ResourceDescriptionService resourceDescriptionService;
   private final MultiTenantSearchDocumentConverter multiTenantSearchDocumentConverter;
   private final Map<String, ResourceRepository> resourceRepositoryBeans;
+
+  private static <K, V> Map<K, List<V>> mergeMaps(Map<K, List<V>> map1, Map<K, List<V>> map2) {
+    var resultMap = new HashMap<K, List<V>>();
+    map1.forEach((key, value) -> resultMap.computeIfAbsent(key, v -> new ArrayList<>()).addAll(value));
+    map2.forEach((key, value) -> resultMap.computeIfAbsent(key, v -> new ArrayList<>()).addAll(value));
+    return resultMap;
+  }
+
+  private static IndexActionType getEventIndexType(ResourceEvent event) {
+    return event.getType() == ResourceEventType.DELETE ? DELETE : INDEX;
+  }
+
+  private static String getErrorMessage(FolioIndexOperationResponse bulkIndexResponse) {
+    return bulkIndexResponse.getErrorMessage() != null ? ", errors: [" + bulkIndexResponse.getErrorMessage() + "]" : "";
+  }
 
   /**
    * Saves list of resources to elasticsearch.
@@ -88,10 +101,8 @@ public class ResourceService {
 
     var groupedByOperation = eventsToIndex.stream().collect(groupingBy(ResourceService::getEventIndexType));
     var fetchedInstances = resourceFetchService.fetchInstancesByIds(groupedByOperation.get(INDEX));
-    messageProducer.prepareAndSendContributorEvents(fetchedInstances);
     var indexDocuments = multiTenantSearchDocumentConverter.convert(fetchedInstances);
     var removeDocuments = multiTenantSearchDocumentConverter.convert(groupedByOperation.get(DELETE));
-    messageProducer.prepareAndSendContributorEvents(groupedByOperation.get(DELETE));
     var bulkIndexResponse = indexSearchDocuments(mergeMaps(indexDocuments, removeDocuments));
     log.info("Records indexed to elasticsearch [indexRequests: {}, removeRequests: {}{}]",
       getNumberOfRequests(indexDocuments), getNumberOfRequests(removeDocuments), getErrorMessage(bulkIndexResponse));
@@ -142,26 +153,11 @@ public class ResourceService {
     return eventsToIndex;
   }
 
-  private static <K, V> Map<K, List<V>> mergeMaps(Map<K, List<V>> map1, Map<K, List<V>> map2) {
-    var resultMap = new HashMap<K, List<V>>();
-    map1.forEach((key, value) -> resultMap.computeIfAbsent(key, v -> new ArrayList<>()).addAll(value));
-    map2.forEach((key, value) -> resultMap.computeIfAbsent(key, v -> new ArrayList<>()).addAll(value));
-    return resultMap;
-  }
-
   private String getIndexingRepositoryName(String resourceName) {
     return resourceDescriptionService.find(resourceName)
       .map(ResourceDescription::getIndexingConfiguration)
       .map(ResourceIndexingConfiguration::getResourceRepository)
       .filter(resourceRepositoryBeans::containsKey)
       .orElse(PRIMARY_INDEXING_REPOSITORY_NAME);
-  }
-
-  private static IndexActionType getEventIndexType(ResourceEvent event) {
-    return event.getType() == ResourceEventType.DELETE ? DELETE : INDEX;
-  }
-
-  private static String getErrorMessage(FolioIndexOperationResponse bulkIndexResponse) {
-    return bulkIndexResponse.getErrorMessage() != null ? ", errors: [" + bulkIndexResponse.getErrorMessage() + "]" : "";
   }
 }
