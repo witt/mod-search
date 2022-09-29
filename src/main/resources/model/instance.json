@@ -73,7 +73,7 @@
       }
     },
     "contributors": {
-      "type": "nested",
+      "type": "object",
       "properties": {
         "name": {
           "searchAliases": [ "contributors", "keyword" ],
