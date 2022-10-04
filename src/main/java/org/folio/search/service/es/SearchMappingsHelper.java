@@ -145,6 +145,7 @@ public class SearchMappingsHelper {
     Map<String, Object> objectNodeMappings =
       new java.util.HashMap<>(singletonMap(MAPPING_PROPERTIES_FIELD, mappingProps));
     objectNodeMappings.put("type", "nested");
+    objectNodeMappings.put("include_in_parent", true);
     objectNodeMappings.put(MAPPING_PROPERTIES_FIELD, mappingProps);
     return singletonMap(fieldName, jsonConverter.toJsonTree(objectNodeMappings));
   }
