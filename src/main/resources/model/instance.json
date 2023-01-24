@@ -535,6 +535,12 @@
       "index": "keyword",
       "processor": "issnProcessor"
     },
+    "callNumberType": {
+      "searchTypes": [ "facet", "filter" ],
+      "type": "search",
+      "index": "keyword",
+      "processor": "callNumberTypeProcessor"
+    },
     "instanceTags": {
       "searchTypes": [ "facet", "filter" ],
       "type": "search",
