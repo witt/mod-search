@@ -78,8 +78,8 @@ public class CallNumberBrowseResultConverter {
 
   private static List<CallNumberBrowseItem> populateItemsWithIntermediateResults(
     List<CallNumberBrowseItem> browseItems, BrowseContext ctx, boolean removeDuplicates, boolean isBrowsingForward) {
-    var f = (BaseTermQueryBuilder<TermQueryBuilder>) (ctx.getFilters().get(0));
-    var filter = (String) f.value();
+    var filterBuilder = (BaseTermQueryBuilder<TermQueryBuilder>) (ctx.getFilters().get(0));
+    var filter = (String) filterBuilder.value();
 
     return browseItems.stream()
       .map(item -> getCallNumberBrowseItemsBetween(item, filter, removeDuplicates))
