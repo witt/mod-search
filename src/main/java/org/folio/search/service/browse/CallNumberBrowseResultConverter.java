@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.toRootUpperCase;
 import static org.folio.search.domain.dto.TenantConfiguredFeature.BROWSE_CN_INTERMEDIATE_REMOVE_DUPLICATES;
 import static org.folio.search.domain.dto.TenantConfiguredFeature.BROWSE_CN_INTERMEDIATE_VALUES;
+import static org.folio.search.service.setter.item.CallNumberTypeProcessor.toType;
 import static org.folio.search.service.setter.item.ItemEffectiveShelvingOrderProcessor.normalizeValue;
 import static org.folio.search.utils.CollectionUtils.distinctByKey;
 import static org.folio.search.utils.CollectionUtils.findFirst;
@@ -32,6 +33,8 @@ import org.folio.search.model.service.BrowseContext;
 import org.folio.search.service.FeatureConfigService;
 import org.folio.search.service.converter.ElasticsearchDocumentConverter;
 import org.opensearch.action.search.SearchResponse;
+import org.opensearch.index.query.BaseTermQueryBuilder;
+import org.opensearch.index.query.TermQueryBuilder;
 import org.opensearch.search.SearchHit;
 import org.springframework.stereotype.Component;
 
@@ -75,8 +78,11 @@ public class CallNumberBrowseResultConverter {
 
   private static List<CallNumberBrowseItem> populateItemsWithIntermediateResults(
     List<CallNumberBrowseItem> browseItems, BrowseContext ctx, boolean removeDuplicates, boolean isBrowsingForward) {
+    var f = (BaseTermQueryBuilder<TermQueryBuilder>) (ctx.getFilters().get(0));
+    var filter = (String) f.value();
+
     return browseItems.stream()
-      .map(item -> getCallNumberBrowseItemsBetween(item, removeDuplicates))
+      .map(item -> getCallNumberBrowseItemsBetween(item, filter, removeDuplicates))
       .flatMap(Collection::stream)
       .filter(browseItem -> isValidBrowseItem(browseItem, ctx, isBrowsingForward))
       .sorted(comparing(CallNumberBrowseItem::getShelfKey))
@@ -101,12 +107,14 @@ public class CallNumberBrowseResultConverter {
   }
 
   private static List<CallNumberBrowseItem> getCallNumberBrowseItemsBetween(CallNumberBrowseItem browseItem,
+                                                                            String filter,
                                                                             boolean removeDuplicates) {
     var itemsByShelfKeys = toStreamSafe(browseItem.getInstance().getItems())
       .filter(item -> StringUtils.isNotBlank(item.getEffectiveShelvingOrder()))
       .collect(groupingBy(item -> toRootUpperCase(item.getEffectiveShelvingOrder()), LinkedHashMap::new, toList()));
 
     var callNumbersStream = toStreamSafe(browseItem.getInstance().getItems())
+      .filter(i -> toType(i.getEffectiveCallNumberComponents().getCallNumber()).equals(filter))
       .map(Item::getEffectiveShelvingOrder).distinct()
       .filter(StringUtils::isNotBlank)
       .map(StringUtils::toRootUpperCase)

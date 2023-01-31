@@ -26,7 +26,7 @@ public class CallNumberTypeProcessor implements FieldProcessor<Instance, Set<Str
       .collect(toSet());
   }
 
-  private String toType(String cn) {
+  public static String toType(String cn) {
     if (new LCCallNumber(cn).isValid()) {
       return "LC";
     }
