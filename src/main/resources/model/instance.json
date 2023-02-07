@@ -41,7 +41,7 @@
       "showInResponse": [ "search", "call-number-browse" ]
     },
     "alternativeTitles": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "alternativeTitleTypeId": {
           "index": "source"
@@ -61,7 +61,7 @@
       "index": "multilang"
     },
     "series": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "value": {
           "index": "multilang",
@@ -74,7 +74,7 @@
       }
     },
     "identifiers": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "value": {
           "searchAliases": [ "keyword" ],
@@ -86,7 +86,7 @@
       }
     },
     "contributors": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "name": {
           "searchAliases": [ "contributors", "keyword" ],
@@ -113,7 +113,7 @@
       }
     },
     "subjects": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "value": {
           "index": "multilang",
@@ -146,7 +146,7 @@
       "index": "keyword"
     },
     "metadata": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "createdDate": {
           "searchTypes": "filter",
@@ -179,7 +179,7 @@
       "index": "keyword"
     },
     "publication": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "publisher": {
           "searchAliases": [ "publisher" ],
@@ -193,7 +193,7 @@
       }
     },
     "tags": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "tagList": {
           "searchTypes": [ "facet", "filter" ],
@@ -202,7 +202,7 @@
       }
     },
     "classifications": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "classificationNumber": {
           "index": "keyword"
@@ -213,7 +213,7 @@
       "index": "multilang"
     },
     "notes": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "note": {
           "index": "multilang"
@@ -224,7 +224,7 @@
       }
     },
     "electronicAccess": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "uri": {
           "searchAliases": [ "electronicAccess" ],
@@ -256,7 +256,7 @@
       "showInResponse": [ "search", "call-number-browse" ]
     },
     "items": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "id": {
           "index": "keyword"
@@ -285,7 +285,7 @@
           "index": "keyword"
         },
         "status": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "name": {
               "searchTypes": [ "facet", "filter", "sort" ],
@@ -308,7 +308,7 @@
           "default": false
         },
         "effectiveCallNumberComponents": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "callNumber": {
               "index": "source",
@@ -329,7 +329,7 @@
           "showInResponse": [ "search", "call-number-browse" ]
         },
         "tags": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "tagList": {
               "index": "multilang"
@@ -337,7 +337,7 @@
           }
         },
         "electronicAccess": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "uri": {
               "searchAliases": [ "items.electronicAccess" ],
@@ -360,7 +360,7 @@
           "index": "multilang"
         },
         "notes": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "note": {
               "index": "multilang",
@@ -372,7 +372,7 @@
           }
         },
         "circulationNotes": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "note": {
               "index": "multilang",
@@ -384,7 +384,7 @@
           }
         },
         "metadata": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "createdDate": {
               "searchTypes": "filter",
@@ -411,7 +411,7 @@
       }
     },
     "holdings": {
-      "type": "object",
+      "type": "nested",
       "properties": {
         "id": {
           "index": "keyword"
@@ -442,7 +442,7 @@
           "index": "source"
         },
         "tags": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "tagList": {
               "index": "multilang"
@@ -450,7 +450,7 @@
           }
         },
         "electronicAccess": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "uri": {
               "searchAliases": [ "holdings.electronicAccess" ],
@@ -473,7 +473,7 @@
           "index": "multilang"
         },
         "notes": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "note": {
               "index": "multilang"
@@ -484,7 +484,7 @@
           }
         },
         "metadata": {
-          "type": "object",
+          "type": "nested",
           "properties": {
             "createdDate": {
               "searchTypes": "filter",
