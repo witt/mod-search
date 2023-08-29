@@ -126,6 +126,7 @@ folio:
       enabled: true
     feign:
       enabled: true
+      level: full
 
 server.port: 8081
 management:
@@ -137,3 +138,6 @@ management:
   endpoint:
     loggers:
       enabled: true
+
+logging.level:
+  org.folio.*: debug
