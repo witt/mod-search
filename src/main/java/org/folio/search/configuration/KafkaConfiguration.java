@@ -2,10 +2,9 @@ package org.folio.search.configuration;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 import static org.folio.search.configuration.KafkaConfiguration.SearchTopic.CONSORTIUM_INSTANCE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +38,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 public class KafkaConfiguration {
 
   private final KafkaProperties kafkaProperties;
+  private final ObjectMapper objectMapper;
 
   /**
    * Creates and configures {@link ConcurrentKafkaListenerContainerFactory} as Spring bean for consuming resource events
@@ -71,7 +71,7 @@ public class KafkaConfiguration {
    */
   @Bean
   public ConsumerFactory<String, ResourceEvent> resourceEventConsumerFactory() {
-    var deserializer = new JsonDeserializer<>(ResourceEvent.class, false);
+    var deserializer = new JsonDeserializer<>(ResourceEvent.class, objectMapper, false);
     Map<String, Object> config = new HashMap<>(kafkaProperties.buildConsumerProperties());
     config.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     config.put(VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
@@ -132,9 +132,9 @@ public class KafkaConfiguration {
 
   private <T> ProducerFactory<String, T> getProducerFactory() {
     Map<String, Object> configProps = new HashMap<>(kafkaProperties.buildProducerProperties());
-    configProps.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-    configProps.put(VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-    return new DefaultKafkaProducerFactory<>(configProps);
+    //configProps.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    //configProps.put(VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+    return new DefaultKafkaProducerFactory<>(configProps, new StringSerializer(), new JsonSerializer<>(objectMapper));
   }
 
   enum SearchTopic implements FolioKafkaTopic {

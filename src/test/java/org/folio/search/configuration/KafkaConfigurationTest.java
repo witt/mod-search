@@ -3,6 +3,7 @@ package org.folio.search.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import org.folio.spring.test.type.UnitTest;
 import org.folio.spring.tools.kafka.FolioKafkaProperties;
@@ -25,6 +26,8 @@ class KafkaConfigurationTest {
   private KafkaProperties kafkaProperties;
   @Mock
   private FolioKafkaProperties folioKafkaProperties;
+  @Mock
+  private ObjectMapper objectMapper;
 
   @Test
   void standardListenerContainerFactory() {
